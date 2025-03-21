@@ -1,0 +1,31 @@
+import scrapy
+
+class FranchiseBallTeamItem(scrapy.Item):
+  name = scrapy.Field()
+  win = scrapy.Field()
+  loss = scrapy.Field()
+  runs_differential = scrapy.Field()
+  avg = scrapy.Field()
+  obp = scrapy.Field()
+  era = scrapy.Field()
+  whip = scrapy.Field()
+  team_rank = scrapy.Field()
+  runs_on = scrapy.Field()
+  world_titles = scrapy.Field()
+  league_titles = scrapy.Field()
+  division_titles = scrapy.Field()
+  weighted_score = scrapy.Field()
+
+class FranchiseBallPlayerItem(scrapy.Item):
+  link = scrapy.Field()
+  name = scrapy.Field()
+  position = scrapy.Field()
+  age = scrapy.Field()
+  control = scrapy.Field()
+  movement = scrapy.Field()
+  velocity = scrapy.Field()
+  stamina = scrapy.Field()
+  power = scrapy.Field()
+  contact = scrapy.Field()
+  speed = scrapy.Field()
+  defense = scrapy.Field()
