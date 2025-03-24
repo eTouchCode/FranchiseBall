@@ -82,7 +82,7 @@ const Dashboard = () => {
         setPlayerLoading(false);
       } catch (err: any) {
         setPlayerLoading(false);
-        console.log(err);
+        toast.error(err.response.data.message);
       }
     };
 

@@ -18,7 +18,8 @@ export interface Team {
   division_titles: number,
   weighted_score: number,
   players: Player[],
-  lottery_rank?: number
+  lottery_rank?: number,
+  drafted_players?: string[]
 }
 
 const useTeamStore = create((set) => ({
@@ -26,6 +27,8 @@ const useTeamStore = create((set) => ({
     setLoading: (state: boolean) => set({ loading: state }),
     teams: [],
     setTeams: (teams: Team[]) => set({ teams: teams }),
+    selectedTeam: null,
+    setSelectedTeam: (team: Team | null) => set({selectedTeam: team}),
     lotteryTeams: null,
     setLotteryTeams: (teams: Team[] | null) => set({ lotteryTeams: teams }),
     isLotteryStarted: false,

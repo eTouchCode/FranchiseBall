@@ -13,7 +13,6 @@ export interface Player {
   contact: string,
   speed: string,
   defense: string,
-  isDrafted?: boolean,
   isAdded?: boolean
 }
 

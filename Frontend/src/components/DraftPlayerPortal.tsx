@@ -4,38 +4,34 @@ import { Player, usePlayerStore } from "../store/player.store";
 import { FiChevronDown } from "react-icons/fi";
 import { toast } from "sonner";
 import Axios from "../config/axios";
+import { Team, useTeamStore } from "../store/team.store";
 
 const DraftPlayerPortal = () => {
-  const { players, setPlayers } = usePlayerStore() as {
+  const { players } = usePlayerStore() as {
     players: Player[];
-    setPlayers: (players: Player[]) => void;
+  };
+  const { teams, setTeams, selectedTeam, setSelectedTeam } = useTeamStore() as {
+    teams: Team[];
+    setTeams: (teams: Team[]) => void;
+    selectedTeam: Team | null;
+    setSelectedTeam: (team: Team | null) => void;
   };
   const [loading, setLoading] = useState<boolean>(false);
-  const [selectedPosition, setSelectedPosition] = useState<string>("");
-  const [positions, setPositions] = useState<string[]>([]);
-  const [filteredPlayers, setFilteredPlayers] = useState<Player[]>([]);
-  const [isExistsDraftedPlayer, setIsExistsDraftedPlayer] =
-    useState<boolean>(false);
 
   const setPlayerAsDraft = async (id: string) => {
     try {
       setLoading(true);
       const res = await Axios.put(
-        `${import.meta.env.VITE_API_URL}/player/draft/${id}`,
-        { isDrafted: true }
+        `${import.meta.env.VITE_API_URL}/team/draft/${id}`,
+        { isDrafted: true, teamId: selectedTeam?._id }
       );
       if (res.status === 200) {
         setLoading(false);
         toast.success(res.data.message);
-        setPlayers(res.data.players);
-        setFilteredPlayers(
-          res.data.players.filter(
-            (player: Player) => player.position === selectedPosition
-          )
-        );
-        setIsExistsDraftedPlayer(true);
+        setTeams(res.data.teams);
       }
     } catch (err: any) {
+      console.log(err);
       toast.error(err.response.data.message);
     }
   };
@@ -44,69 +40,56 @@ const DraftPlayerPortal = () => {
     try {
       setLoading(true);
       const res = await Axios.put(
-        `${import.meta.env.VITE_API_URL}/player/draft/${id}`,
-        { isDrafted: false }
+        `${import.meta.env.VITE_API_URL}/team/draft/${id}`,
+        { isDrafted: false, teamId: selectedTeam?._id }
       );
       if (res.status === 200) {
         setLoading(false);
         toast.success(res.data.message);
-        setPlayers(res.data.players);
-        setFilteredPlayers(
-          res.data.players.filter(
-            (player: Player) => player.position === selectedPosition
-          )
-        );
-        setIsExistsDraftedPlayer(false);
+        setTeams(res.data.teams);
       }
     } catch (err: any) {
+      console.log(err);
       toast.error(err.response.data.message);
     }
   };
 
   useEffect(() => {
-    const uniquePositions = Array.from(
-      new Set(players.map((player) => player.position))
-    );
-    setPositions(uniquePositions);
-    setSelectedPosition(uniquePositions[0]);
-    const filteredPlayers = players.filter(
-      (player: Player) => player.position === uniquePositions[0]
-    );
-    const isExists = filteredPlayers.some((player) => player?.isDrafted);
-    setIsExistsDraftedPlayer(isExists);
-    setFilteredPlayers(filteredPlayers);
-  }, []);
+    if (selectedTeam === null || selectedTeam === undefined) {
+      setSelectedTeam(teams[0]);
+    }
+  }, [selectedTeam]);
+
+  useEffect(() => {
+    if (teams && (selectedTeam !== null || selectedTeam === undefined)) {
+      setSelectedTeam(
+        teams.find((team) => team._id === selectedTeam._id) || null
+      );
+    }
+  }, [teams]);
 
   return (
     <div className="sm:flex gap-4 max-h-[calc(100vh-12rem)] mt-5">
-      <div className="min-w-[200px] mb-2 sm:mb-0">
+      <div className="min-w-[250px] mb-2 sm:mb-0">
         <Dropdown as="button" className="w-full">
           <Dropdown.Trigger className="w-full">
             <Button
               variant="outline"
               className="w-full flex justify-between border border-stroke hover:border-primary dark:border-strokedark dark:hover:border-primary"
             >
-              {selectedPosition} <FiChevronDown className="ml-2 w-5" />
+              {selectedTeam?.name} <FiChevronDown className="ml-2 w-5" />
             </Button>
           </Dropdown.Trigger>
-          <Dropdown.Menu className="border border-stroke dark:border-strokedark drop-shadow-none">
-            {positions.map((position, index) => (
+          <Dropdown.Menu className="min-w-[250px] border border-stroke dark:border-strokedark drop-shadow-none">
+            {teams?.map((team, index) => (
               <Dropdown.Item
                 key={index}
                 className="hover:bg-stroke dark:hover:bg-strokedark"
                 onClick={() => {
-                  setSelectedPosition(position);
-                  const filteredPlayers = players.filter(
-                    (player: Player) => player.position === position
-                  );
-                  setFilteredPlayers(filteredPlayers);
-                  const isExists = filteredPlayers.some(
-                    (player) => player?.isDrafted
-                  );
-                  setIsExistsDraftedPlayer(isExists);
+                  setSelectedTeam(team);
                 }}
               >
-                {position}
+                {team.name}
               </Dropdown.Item>
             ))}
           </Dropdown.Menu>
@@ -156,11 +139,11 @@ const DraftPlayerPortal = () => {
             </tr>
           </thead>
           <tbody>
-            {filteredPlayers.map((player, index) => (
+            {players.map((player, index) => (
               <tr
                 key={index}
                 className={`bg-white dark:bg-boxdark whitespace-nowrap cursor-pointer ${
-                  index === filteredPlayers.length - 1
+                  index === players.length - 1
                     ? ""
                     : "border-b border-b-stroke dark:border-b-strokedark"
                 }`}
@@ -176,23 +159,34 @@ const DraftPlayerPortal = () => {
                 <td className="px-6 h-12">{player.movement}</td>
                 <td className="px-6 h-12">{player.velocity}</td>
                 <td className="px-6 h-12">{player.stamina}</td>
-                <td className="px-6 h-12">{player.isDrafted ? "Yes" : "No"}</td>
+                <td className="px-6 h-12">
+                  {selectedTeam?.drafted_players &&
+                  selectedTeam?.drafted_players.length > 0
+                    ? "Yes"
+                    : "No"}
+                </td>
                 <td className="px-6 h-12 flex justify-center items-center">
-                  {isExistsDraftedPlayer && !player?.isDrafted ? (
+                  {selectedTeam?.drafted_players &&
+                  selectedTeam?.drafted_players.length > 0 &&
+                  !selectedTeam.drafted_players.includes(player._id) ? (
                     <></>
                   ) : (
                     <button
                       disabled={loading}
                       className="flex justify-center items-center gap-2 cursor-pointer disabled:cursor-not-allowed rounded-lg border border-primary bg-primary disabled:bg-bodydark dark:disabled:bg-steel-500/20 disabled:border-none px-3 h-9 text-white disabled:dark:text-slate-400 transition hover:bg-opacity-90 whitespace-nowrap"
                       onClick={() => {
-                        if (player?.isDrafted) {
-                          setPlayerAsUnDraft(player._id);
-                        } else {
+                        if (
+                          !selectedTeam?.drafted_players?.includes(player._id)
+                        ) {
                           setPlayerAsDraft(player._id);
+                        } else {
+                          setPlayerAsUnDraft(player._id);
                         }
                       }}
                     >
-                      {player?.isDrafted ? "Undraft" : "Draft"}
+                      {!selectedTeam?.drafted_players?.includes(player._id)
+                        ? "Draft"
+                        : "Undraft"}
                     </button>
                   )}
                 </td>

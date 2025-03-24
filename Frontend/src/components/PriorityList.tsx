@@ -269,7 +269,10 @@ const PriorityList = () => {
                   <td className="px-6 py-1">
                     <button
                       className="flex justify-center items-center gap-2 cursor-pointer disabled:cursor-not-allowed rounded-lg border border-primary bg-primary disabled:bg-bodydark dark:disabled:bg-steel-500/20 disabled:border-none w-20 h-9 text-white disabled:dark:text-slate-400 transition hover:bg-opacity-90"
-                      onClick={() => removePlayerFromList(index)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removePlayerFromList(index);
+                      }}
                     >
                       Remove
                     </button>

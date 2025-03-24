@@ -1,4 +1,5 @@
 import mongoose, {Schema, Document} from "mongoose";
+import { IPlayer } from "./Player";
 
 export interface ITeam extends Document {
   name: string;
@@ -16,6 +17,7 @@ export interface ITeam extends Document {
   division_titles: number;
   weighted_score: number;
   lottery_rank?: number;
+  drafted_players?: string[];
 }
 
 const TeamSchema = new Schema({
@@ -78,7 +80,13 @@ const TeamSchema = new Schema({
   },
   lottery_rank: {
     type: Number
-  }
+  },
+  drafted_players: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Player"
+    }
+  ]
 })
 
 const Team = mongoose.model<ITeam>("Team", TeamSchema);

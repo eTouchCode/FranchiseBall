@@ -8,7 +8,7 @@ export const getPriorityLists = async (req: Request, res: Response): Promise<voi
     const priorityListDoc = await PriorityLists.findOne(); 
 
     if (!priorityListDoc) {
-      res.status(404).json({ message: "Priority lists not found." });
+      res.status(200).json({ priorityLists: {} });
       return;
     }
 

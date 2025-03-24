@@ -12,105 +12,116 @@ const ViewDraftPortal = () => {
     players: Player[];
     priorityLists: PriorityLists;
   };
-  const initialDraftPlayers = players.filter(
-    (player: Player) => player?.isDrafted === true
-  );
-  const [disabled, setDisabled] = useState<boolean>(false);
-  const [draftedPlayers, setDraftedPlayers] =
-    useState<Player[]>(initialDraftPlayers);
-  const [pickedPlayers, setPickedPlayers] = useState<PriorityLists>({});
   const teams = lotteryTeams ? lotteryTeams : initialTeams;
-  const [selectedTeam, setSelectedTeam] = useState<Team>(teams[0]);
-  const [countDown, setCountDown] = useState<number>(180);
+
+  const hasRendered = useRef(false);
+  const countRef = useRef(5);
   const teamIndexRef = useRef(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const directionRef = useRef(1);
+  const updatedTeamsRef = useRef(teams);
+  const [_, setShouldRender] = useState(0);
 
   const startCountDown = () => {
     if (intervalRef.current) clearInterval(intervalRef.current);
     intervalRef.current = setInterval(() => {
-      setCountDown((prev) => {
-        if (prev <= 0) {
-          clearInterval(intervalRef.current!);
-          autoPickPlayer();
-          return 0;
-        }
-        return prev - 1;
-      });
+      countRef.current -= 1;
+      if (countRef.current == 0) {
+        autoPickPlayer();
+      }
+      if (countRef.current >= 0) {
+        setShouldRender(Math.random());
+      }
     }, 1000);
   };
 
   const nextTeam = () => {
-    teamIndexRef.current = (teamIndexRef.current + 1) % teams.length;
-    setSelectedTeam(teams[teamIndexRef.current]);
-    setCountDown(180);
-    startCountDown();
-  };
-
-  const autoPickPlayer = () => {
-    const currentTeam = selectedTeam;
-    const availablePlayers = players.filter((player) => !player.isDrafted);
-
-    let selectedPlayer: Player | null = null;
-    if (priorityLists[currentTeam._id]?.length > 0) {
-      for (const player of priorityLists[currentTeam._id]) {
-        if (!player.isDrafted) {
-          selectedPlayer = player;
-          break;
-        }
+    const nextTeam = teamIndexRef.current + directionRef.current;
+    if (nextTeam < 0 || nextTeam >= teams.length) {
+      if (directionRef.current == 1) {
+        directionRef.current = -1;
+      } else if (directionRef.current == -1) {
+        directionRef.current = 0;
+        clearInterval(intervalRef.current!);
       }
     }
 
-    if (!selectedPlayer) {
-      selectedPlayer =
-        availablePlayers[Math.floor(Math.random() * availablePlayers.length)];
-    }
-
-    if (selectedPlayer) {
-      setDisabled(true);
-      setPickedPlayers((prev) => ({
-        ...prev,
-        [currentTeam._id]: [...(prev[currentTeam._id] || []), selectedPlayer],
-      }));
-      toast.success(
-        `The pick is in! ${selectedTeam.name} selected ${selectedPlayer.name}`
-      );
-    }
-
-    setTimeout(() => {
-      setDisabled(true);
-      nextTeam();
-    }, 10000);
+    teamIndexRef.current = teamIndexRef.current + directionRef.current;
+    countRef.current = 5;
   };
 
-  const handlePickPlayer = (player: Player) => {
-    setDisabled(true);
-    setDraftedPlayers((prev) => prev.filter((p) => p._id !== player._id));
-    setPickedPlayers((prev) => ({
-      ...prev,
-      [selectedTeam._id]: [...(prev[selectedTeam._id] || []), player],
-    }));
-    toast.success(
-      `The pick is in! ${selectedTeam.name} selected ${player.name}`
-    );
-    setTimeout(() => {
+  const autoPickPlayer = () => {
+    const currentTeam = teams[teamIndexRef.current];
+    if (
+      currentTeam &&
+      currentTeam.drafted_players &&
+      currentTeam.drafted_players.length > 0 &&
+      directionRef.current === 1
+    ) {
       nextTeam();
-      setDisabled(false);
-    }, 10000);
+    } else {
+      const all_drafted_players = updatedTeamsRef.current.flatMap(
+        (team) => team?.drafted_players
+      );
+      const availablePlayers = players.filter(
+        (player) => !all_drafted_players?.includes(player._id)
+      );
+      let selectedPlayer: Player | null = null;
+      if (priorityLists[currentTeam._id]?.length > 0) {
+        for (const player of priorityLists[currentTeam._id]) {
+          if (availablePlayers.includes(player)) {
+            selectedPlayer = player;
+            break;
+          }
+        }
+      }
+      if (!selectedPlayer) {
+        selectedPlayer =
+          availablePlayers[Math.floor(Math.random() * availablePlayers.length)];
+      }
+      if (selectedPlayer) {
+        const teamToUpdate = updatedTeamsRef.current.find(
+          (team) => team._id === currentTeam._id
+        );
+        if (teamToUpdate) {
+          const updatedTeam = {
+            ...teamToUpdate,
+            drafted_players: teamToUpdate.drafted_players
+              ? [...teamToUpdate.drafted_players, selectedPlayer._id]
+              : [selectedPlayer._id],
+          };
+          updatedTeamsRef.current = updatedTeamsRef.current.map((team) =>
+            team._id === currentTeam._id ? updatedTeam : team
+          );
+          toast.success(
+            `The pick is in! ${currentTeam.name} selected ${selectedPlayer.name}`
+          );
+        }
+        setTimeout(() => {
+          nextTeam();
+        }, 2000);
+      }
+    }
   };
 
   useEffect(() => {
-    startCountDown();
-    return () => clearInterval(intervalRef.current!);
+    if (!hasRendered.current) {
+      startCountDown();
+      hasRendered.current = true;
+    }
   }, []);
 
   return (
     <div className="flex flex-col mt-5">
       <div className="flex justify-center bg-bodydark dark:bg-boxdark py-2.5">
         <span className="text-black dark:text-white text-lg font-medium">
-          Status Bar - this shows current status like "{selectedTeam?.name}" :{" "}
-          {`${Math.floor(countDown / 60)
+          Status Bar - this shows current status like "
+          {teams[teamIndexRef.current]?.name}" :{" "}
+          {`${Math.floor(countRef.current / 60)
             .toString()
-            .padStart(2, "0")}:${(countDown % 60).toString().padStart(2, "0")}`}
+            .padStart(2, "0")}:${(countRef.current % 60)
+            .toString()
+            .padStart(2, "0")}`}
         </span>
       </div>
       <div className="flex gap-2 mt-2">
@@ -132,7 +143,7 @@ const ViewDraftPortal = () => {
                   <tr
                     key={index}
                     className={`${
-                      team._id === selectedTeam._id
+                      team._id === teams[teamIndexRef.current]._id
                         ? "text-yellow-300 dark:text-yellow-300"
                         : ""
                     } bg-white dark:bg-boxdark whitespace-nowrap ${
@@ -149,11 +160,11 @@ const ViewDraftPortal = () => {
             </table>
           </div>
         </div>
-        <div className="w-1/2">
+        <div className="w-3/4">
           <div className="overflow-y-auto max-h-[calc(100vh-13rem)]">
             <table className="min-w-full autoborder border-stroke dark:border-strokedark">
               <thead>
-                <tr className="bg-gray dark:bg-boxdark border-b border-stroke dark:border-b-strokedark">
+                <tr className="bg-white dark:bg-boxdark border-b border-stroke dark:border-b-strokedark">
                   <th className="px-6 py-4 text-left text-black dark:text-white">
                     Name
                   </th>
@@ -190,83 +201,59 @@ const ViewDraftPortal = () => {
                 </tr>
               </thead>
               <tbody>
-                {pickedPlayers[selectedTeam._id]?.length > 0 ? (
-                  pickedPlayers[selectedTeam._id]?.map((player, index) => (
-                    <tr
-                      key={index}
-                      className={`bg-white dark:bg-boxdark whitespace-nowrap cursor-pointer hover:bg-stroke dark:hover:bg-strokedark ${
-                        index === players.length - 1
-                          ? ""
-                          : "border-b border-b-stroke dark:border-b-strokedark"
-                      }`}
-                    >
-                      <td className="px-6 py-2">{player.name}</td>
-                      <td className="px-6 py-2">{player.position}</td>
-                      <td className="px-6 py-2">{player.age}</td>
-                      <td className="px-6 py-2">{player.power}</td>
-                      <td className="px-6 py-2">{player.contact}</td>
-                      <td className="px-6 py-2">{player.speed}</td>
-                      <td className="px-6 py-2">{player.defense}</td>
-                      <td className="px-6 py-2">{player.control}</td>
-                      <td className="px-6 py-2">{player.movement}</td>
-                      <td className="px-6 py-2">{player.velocity}</td>
-                      <td className="px-6 py-2">{player.stamina}</td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr className="bg-white dark:bg-boxdark border-t border-t-stroke dark:border-t-strokedark">
-                    <td colSpan={11} className="text-center py-2 text-lg">
-                      No picked player
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <div className="w-1/4">
-          <div className="overflow-y-auto max-h-[calc(100vh-13rem)]">
-            <table className="min-w-full autoborder border-stroke dark:border-strokedark">
-              <thead>
-                <tr className="bg-white dark:bg-boxdark border-b border-stroke dark:border-b-strokedark">
-                  <th className="px-6 py-4 text-left text-black dark:text-white">
-                    No
-                  </th>
-                  <th className="px-6 py-4 text-left text-black dark:text-white">
-                    Name
-                  </th>
-                  <th className="px-6 py-4 text-left text-black dark:text-white">
-                    Position
-                  </th>
-                  <th className="px-6 py-4 text-left text-black dark:text-white"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {draftedPlayers.map((player, index) => (
-                  <tr
-                    key={index}
-                    className={` bg-white dark:bg-boxdark whitespace-nowrap cursor-pointer ${
-                      index === teams.length - 1
-                        ? ""
-                        : "border-b border-b-stroke dark:border-b-strokedark"
-                    }`}
-                  >
-                    <td className="px-6 h-12">{index + 1}</td>
-                    <td className="px-6 h-12">{player.name}</td>
-                    <td className="px-6 h-12">{player.position}</td>
-                    <td className="px-6 h-12">
-                      <button
-                        disabled={disabled}
-                        className="flex justify-center items-center gap-2 cursor-pointer disabled:cursor-not-allowed rounded-lg border border-primary bg-primary disabled:bg-bodydark dark:disabled:bg-steel-500/20 disabled:border-none w-16 h-9 text-white disabled:dark:text-slate-400 transition hover:bg-opacity-90"
-                        onClick={() => {
-                          handlePickPlayer(player);
-                        }}
-                      >
-                        Pick
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {(() => {
+                  const teamIndex = updatedTeamsRef.current.findIndex(
+                    (team) => team._id === teams[teamIndexRef.current]._id
+                  );
+
+                  const team =
+                    teamIndex !== -1
+                      ? updatedTeamsRef.current[teamIndex]
+                      : null;
+
+                  if (
+                    team &&
+                    team.drafted_players &&
+                    team.drafted_players.length > 0
+                  ) {
+                    return team.drafted_players.map((drafted_player, index) => {
+                      const player = players.find(
+                        (player) => player._id === drafted_player
+                      );
+                      return (
+                        <tr
+                          key={index}
+                          className={`bg-white dark:bg-boxdark whitespace-nowrap cursor-pointer hover:bg-stroke dark:hover:bg-strokedark ${
+                            team.drafted_players &&
+                            index === team.drafted_players.length - 1
+                              ? ""
+                              : "border-b border-b-stroke dark:border-b-strokedark"
+                          }`}
+                        >
+                          <td className="px-6 py-2">{player?.name}</td>
+                          <td className="px-6 py-2">{player?.position}</td>
+                          <td className="px-6 py-2">{player?.age}</td>
+                          <td className="px-6 py-2">{player?.power}</td>
+                          <td className="px-6 py-2">{player?.contact}</td>
+                          <td className="px-6 py-2">{player?.speed}</td>
+                          <td className="px-6 py-2">{player?.defense}</td>
+                          <td className="px-6 py-2">{player?.control}</td>
+                          <td className="px-6 py-2">{player?.movement}</td>
+                          <td className="px-6 py-2">{player?.velocity}</td>
+                          <td className="px-6 py-2">{player?.stamina}</td>
+                        </tr>
+                      );
+                    });
+                  } else {
+                    return (
+                      <tr className="bg-white dark:bg-boxdark border-t border-t-stroke dark:border-t-strokedark">
+                        <td colSpan={11} className="text-center py-2 text-lg">
+                          No picked player
+                        </td>
+                      </tr>
+                    );
+                  }
+                })()}
               </tbody>
             </table>
           </div>

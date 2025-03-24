@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import Team from "../models/Team";
+import Player from "../models/Player";
 
 export const getTeams = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -43,3 +44,48 @@ export const updateLotteryRanks = async (req: Request, res: Response): Promise<v
     res.status(500).json({ message: "Server error. Please try again." });
   }
 };
+
+export const setDraftedPlayers = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = (req as any).user?.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" }) as unknown as Promise<void>;
+    }
+
+    const playerId = req.params.playerId;
+    const {isDrafted, teamId} = req.body;
+
+    const player = await Player.findById(playerId);
+
+    if (!player) {
+      res.status(400).json({message: "Player not found in the database."});
+    }
+
+    const team = await Team.findById(teamId);
+
+    if (!team) {
+      res.status(400).json({message: "Team not found in the database."});
+    }
+
+    if (isDrafted) {
+      team?.drafted_players?.push(playerId);
+    } else {
+      if (team?.drafted_players) {
+        team.drafted_players = team.drafted_players.filter(id => id.toString() !== playerId);
+      }
+    }
+
+    await team?.save();
+
+    const teams = await Team.find();
+
+    res.status(200).json({
+      message: isDrafted ? 'Player set as draft successfully!' : 'Player removed from draft successfully!',
+      teams: teams
+    })
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error. Please try again." });
+  }
+}
