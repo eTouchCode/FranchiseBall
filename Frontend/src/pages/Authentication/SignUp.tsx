@@ -24,6 +24,7 @@ const SignUp: React.FC = () => {
           }}
             validationSchema={Yup.object().shape({
               name: Yup.string().max(255).required('Username is required'),
+              // teamname:   ,
               email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
               password: Yup.string().min(6, 'Password must be at least 6 characters').max(255).required('Password is required'),
               confirmPassword: Yup.string()

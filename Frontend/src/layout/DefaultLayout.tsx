@@ -1,8 +1,10 @@
 import React, { ReactNode, useState } from "react";
 import Header from "../components/Header/index";
+import { useLocation } from "react-router-dom";
 // import Sidebar from '../components/Sidebar';
 
 const DefaultLayout: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const pathname = useLocation().pathname;
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
@@ -18,7 +20,7 @@ const DefaultLayout: React.FC<{ children: ReactNode }> = ({ children }) => {
           {/* <!-- ===== Header End ===== --> */}
 
           {/* <!-- ===== Main Content Start ===== --> */}
-          <main>
+          <main className={`grow ${(pathname.includes("view_draft") || pathname.includes("draft_player")) && "bg-[url('/background.png')]"}`}>
             <div className="p-4 md:p-6">{children}</div>
           </main>
           {/* <!-- ===== Main Content End ===== --> */}

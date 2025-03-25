@@ -165,6 +165,9 @@ const ViewDraftPortal = () => {
             <table className="min-w-full autoborder border-stroke dark:border-strokedark">
               <thead>
                 <tr className="bg-white dark:bg-boxdark border-b border-stroke dark:border-b-strokedark">
+                <th className="px-6 py-4 text-left text-black dark:text-white">
+                    No
+                  </th>
                   <th className="px-6 py-4 text-left text-black dark:text-white">
                     Name
                   </th>
@@ -230,6 +233,7 @@ const ViewDraftPortal = () => {
                               : "border-b border-b-stroke dark:border-b-strokedark"
                           }`}
                         >
+                          <td className="px-6 py-2">{index + 1}</td>
                           <td className="px-6 py-2">{player?.name}</td>
                           <td className="px-6 py-2">{player?.position}</td>
                           <td className="px-6 py-2">{player?.age}</td>
