@@ -12,13 +12,11 @@ export const validateRegisterInput = (data: any) => {
         "string.max": `Username should have at most {#limit} characters`,
         "any.required": "Username is required"
       }),
-    email: Joi.string()
-      .email()
-      .required()
+    team_name: Joi.string()
       .messages({
-        "string.base": "Email must be a string",
-        "string.email": "Email must be a valid email address",
-        "any.required": "Email is required"
+        "string.base": "TeamName must be a string",
+        "string.team_name": "Team_name must be a valid team_name address",
+        "any.required": "Team_name is required"
       }),
     password: Joi.string()
       .min(6)
@@ -35,13 +33,11 @@ export const validateRegisterInput = (data: any) => {
 
 export const validateLoginInput = (data: any) => {
   const schema = Joi.object({
-    email: Joi.string()
-      .email()
-      .required()
+    team_name: Joi.string()
       .messages({
-        "string.base": "Email must be a string",
-        "string.email": "Email must be a valid email address",
-        "any.required": "Email is required"
+        "string.base": "Team_name must be a string",
+        "string.team_name": "Team_name must be a valid Team_name address",
+        "any.required": "Team_name is required"
       }),
     password: Joi.string()
       .required()

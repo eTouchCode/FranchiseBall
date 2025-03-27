@@ -8,6 +8,8 @@ import * as XLSX from "xlsx";
 
 import { Player, PriorityLists, usePlayerStore } from "../store/player.store";
 import { Team, useTeamStore } from "../store/team.store";
+import {useAuthStore } from "../store/auth.store";
+
 import Axios from "../config/axios";
 
 const PriorityList = () => {
@@ -26,6 +28,8 @@ const PriorityList = () => {
   const { teams } = useTeamStore() as {
     teams: Team[];
   };
+  const { user, logOut } = useAuthStore() as { user: any, logOut: () => void };
+
 
   const [loading, setLoading] = useState<boolean>(false);
   const [position, setPosition] = useState<number | null>(null);
@@ -161,8 +165,14 @@ const PriorityList = () => {
   };
 
   useEffect(() => {
-    setSelectedPlayer(null);
-  }, []);
+    if (user?.team_name && teams.length > 0 ) {
+      const matchingTeam = teams.find(team => team.name === user.team_name);
+
+      if (matchingTeam) {
+        setSelectedTeam(matchingTeam);
+      }
+    }
+  }, [teams, user, priorityLists]);
 
   return (
     <div className="min-h-full max-h-[calc(100vh-8rem)] overflow-y-auto p-4 bg-transparent border border-stroke dark:bg-boxdark dark:border-strokedark">
@@ -188,7 +198,12 @@ const PriorityList = () => {
           </button>
         </div>
       </div>
-      <Dropdown as="button" className="w-full mt-4">
+      <div className="w-full mt-4">
+        <span className="text-lg font-normal border border-stroke px-4 py-2 rounded-md dark:border-strokedark">
+          {user.team_name ? user.team_name : "No Team Name Matached"}
+        </span>
+      </div>
+      {/* <Dropdown as="button" className="w-full mt-4">
         <Dropdown.Trigger className="w-full">
           <Button
             variant="outline"
@@ -209,7 +224,7 @@ const PriorityList = () => {
             </Dropdown.Item>
           ))}
         </Dropdown.Menu>
-      </Dropdown>
+      </Dropdown> */}
       {selectedTeam && selectedPlayer && (
         <div className="mt-4">
           <span className="text-lg px-2">

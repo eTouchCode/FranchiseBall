@@ -5,12 +5,12 @@ import User, { IUser } from '../models/User';
 
 export const registerUser = async (
   username: string,
-  email: string,
+  team_name: string,
   password: string
 ): Promise<IUser> => {
-  const existingUser = await User.findOne({ $or: [{ email }, { username }] });
+  const existingUser = await User.findOne({ $or: [{ team_name }, { username }] });
   if (existingUser) {
-    throw new Error("User with this email or username already exists.");
+    throw new Error("User with this team name or username already exists.");
   }
 
   const salt = await bcrypt.genSalt(10);
@@ -18,21 +18,21 @@ export const registerUser = async (
 
   const newUser = new User({
     username,
-    email,
+    team_name,
     password: hashedPassword,
   });
   return await newUser.save();
 }
 
-export const loginUser = async (email: string, password: string) => {
+export const loginUser = async (team_name: string, password: string) => {
   const jwtSecret = process.env.JWT_SECRET;
   if (!jwtSecret) {
     throw new Error("JWT_SECRET is not defined");
   }
 
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ team_name });
   if (!user) {
-    throw new Error("Email is not correct.");
+    throw new Error("Team Name is not correct.");
   }
 
   const isMatch = await bcrypt.compare(password, user.password);
@@ -41,7 +41,7 @@ export const loginUser = async (email: string, password: string) => {
   }
 
   const token = jwt.sign(
-    { userId: user._id, username: user.username, email: user.email },
+    { userId: user._id, username: user.username, team_name: user.team_name },
     jwtSecret,
     { expiresIn: '1h' }
   );
@@ -49,7 +49,7 @@ export const loginUser = async (email: string, password: string) => {
   return {
     token, user: {
       username: user?.username,
-      email: user?.email
+      team_name: user?.team_name
     }
   };
 }

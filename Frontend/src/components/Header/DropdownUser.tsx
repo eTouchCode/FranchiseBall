@@ -17,11 +17,11 @@ const DropdownUser = () => {
       >
         <span className="hidden text-right lg:block">
           <span className="block text-sm font-medium text-black dark:text-white">
-            {user?.username}
+            {user?.team_name}
           </span>
         </span>
 
-        <Avatar name={user?.username} round={true} size='36' />
+        <Avatar name={user?.team_name} round={true} size='36' />
 
         <svg
           className="hidden fill-current sm:block"

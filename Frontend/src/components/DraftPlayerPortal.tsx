@@ -5,6 +5,8 @@ import { FiChevronDown } from "react-icons/fi";
 import { toast } from "sonner";
 import Axios from "../config/axios";
 import { Team, useTeamStore } from "../store/team.store";
+import { useAuthStore } from "../store/auth.store";
+import PriorityList from "./PriorityList";
 
 const DraftPlayerPortal = () => {
   const { players } = usePlayerStore() as {
@@ -16,6 +18,8 @@ const DraftPlayerPortal = () => {
     selectedTeam: Team | null;
     setSelectedTeam: (team: Team | null) => void;
   };
+
+  const { user } = useAuthStore() as { user: any};
   const [loading, setLoading] = useState<boolean>(false);
 
   const setPlayerAsDraft = async (id: string) => {
@@ -68,33 +72,19 @@ const DraftPlayerPortal = () => {
     }
   }, [teams]);
 
+  useEffect(() => {
+    if (user?.team_name && teams.length > 0) {
+      const matchingTeam = teams.find(team => team.name === user.team_name);
+
+      if (matchingTeam) {
+        setSelectedTeam(matchingTeam);
+      }
+    }
+  }, [teams, user, PriorityList]);
+
   return (
     <div className="sm:flex gap-4 max-h-[calc(100vh-12rem)] mt-5">
-      <div className="min-w-[250px] mb-2 sm:mb-0">
-        <Dropdown as="button" className="w-full">
-          <Dropdown.Trigger className="w-full">
-            <Button
-              variant="outline"
-              className="w-full flex justify-between bg-gray dark:bg-boxdark border-none text-black dark:text-white"
-            >
-              {selectedTeam?.name} <FiChevronDown className="ml-2 w-5" />
-            </Button>
-          </Dropdown.Trigger>
-          <Dropdown.Menu className="min-w-[250px] bg-gray dark:bg-boxdark border-none">
-            {teams?.map((team, index) => (
-              <Dropdown.Item
-                key={index}
-                className="hover:bg-stroke dark:hover:bg-strokedark"
-                onClick={() => {
-                  setSelectedTeam(team);
-                }}
-              >
-                {team.name}
-              </Dropdown.Item>
-            ))}
-          </Dropdown.Menu>
-        </Dropdown>
-      </div>
+
       <div className="w-full max-h-full overflow-auto border border-stroke shadow-default dark:border-strokedark">
         <table className="min-w-full autoborder border-stroke dark:border-strokedark">
           <thead>

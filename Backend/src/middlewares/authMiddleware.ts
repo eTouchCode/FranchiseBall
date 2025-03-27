@@ -15,11 +15,11 @@ export const authenticateJWT = (req: Request, res: Response, next: NextFunction)
   }
 
   try {
-    const decoded = jwt.verify(token, jwtSecret) as { userId: string; username: string; email: string };
+    const decoded = jwt.verify(token, jwtSecret) as { userId: string; username: string; team_name: string };
     (req as any).user = {
       userId: decoded.userId,
       username: decoded.username,
-      email: decoded.email,
+      team_name: decoded.team_name,
     };
 
     next();

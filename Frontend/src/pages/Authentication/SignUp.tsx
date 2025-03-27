@@ -17,15 +17,14 @@ const SignUp: React.FC = () => {
           </h2>
           <Formik initialValues={{
             name: '',
-            email: '',
+            team_name: '',
             password: '',
             confirmPassword: '',
-            submit: null
           }}
             validationSchema={Yup.object().shape({
               name: Yup.string().max(255).required('Username is required'),
               // teamname:   ,
-              email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
+              team_name: Yup.string().max(255).required('Team_name is required'),
               password: Yup.string().min(6, 'Password must be at least 6 characters').max(255).required('Password is required'),
               confirmPassword: Yup.string()
                 .oneOf([Yup.ref('password'), undefined], 'Password must match')
@@ -34,9 +33,10 @@ const SignUp: React.FC = () => {
             onSubmit={async (values, { setSubmitting }) => {
               const data = {
                 username: values.name,
-                email: values.email,
+                team_name: values.team_name,
                 password: values.password
               }
+              console.log("Submitting!!!")
               await axios({
                 method: 'post',
                 url: `${import.meta.env.VITE_API_URL}/auth/register/`,
@@ -98,20 +98,20 @@ const SignUp: React.FC = () => {
 
                 <div className="mb-4">
                   <label className="mb-2.5 block font-medium text-black dark:text-white">
-                    Email
+                    Team Name
                   </label>
                   <div className="relative">
                     <input
-                      type="email"
-                      name='email'
-                      value={values.email}
+                      type="text"
+                      name='team_name'
+                      value={values.team_name}
                       onBlur={handleBlur}
                       onChange={handleChange}
-                      placeholder="Enter your email"
+                      placeholder="Enter your team name"
                       className="w-full rounded-lg border border-stroke bg-transparent py-3 pl-6 pr-10 text-black outline-none focus:border-primary focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
                     />
-                    {touched.email && errors.email && (
-                      <div className='text-warning text-sm mt-2'>{errors.email}</div>
+                    {touched.team_name && errors.team_name && (
+                      <div className='text-warning text-sm mt-2'>{errors.team_name}</div>
                     )}
                     <span className="absolute right-4 top-4">
                       <svg
