@@ -8,7 +8,7 @@ const DraftPlayer = () => {
   return (
     <div className="flex flex-col">
       <button
-        className="flex items-center gap-2 cursor-pointer px-3 hover:text-black hover:dark:text-white"
+        className="z-50 w-fit flex items-center gap-2 cursor-pointer px-4 py-1.5 rounded-md text-white bg-primary hover:bg-primary/90"
         onClick={() => {
           navigate("/");
         }}

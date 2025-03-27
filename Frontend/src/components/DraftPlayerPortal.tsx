@@ -75,12 +75,12 @@ const DraftPlayerPortal = () => {
           <Dropdown.Trigger className="w-full">
             <Button
               variant="outline"
-              className="w-full flex justify-between border border-stroke hover:border-primary dark:border-strokedark dark:hover:border-primary"
+              className="w-full flex justify-between bg-gray dark:bg-boxdark border-none text-black dark:text-white"
             >
               {selectedTeam?.name} <FiChevronDown className="ml-2 w-5" />
             </Button>
           </Dropdown.Trigger>
-          <Dropdown.Menu className="min-w-[250px] border border-stroke dark:border-strokedark drop-shadow-none">
+          <Dropdown.Menu className="min-w-[250px] bg-gray dark:bg-boxdark border-none">
             {teams?.map((team, index) => (
               <Dropdown.Item
                 key={index}

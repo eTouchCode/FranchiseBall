@@ -20,8 +20,9 @@ const DefaultLayout: React.FC<{ children: ReactNode }> = ({ children }) => {
           {/* <!-- ===== Header End ===== --> */}
 
           {/* <!-- ===== Main Content Start ===== --> */}
-          <main className={`grow ${(pathname.includes("view_draft") || pathname.includes("draft_player")) && "bg-[url('/background.png')]"}`}>
-            <div className="p-4 md:p-6">{children}</div>
+          {/* <main className={`grow ${(pathname.includes("view_draft") || pathname.includes("draft_player")) && "bg-[url('/background.png')]"}`}> */}
+          <main className={`grow ${pathname.includes("draft_player") && "bg-[url('/background.png')]"}`}>
+            <div className={`${!pathname.includes("view_draft") && "p-4 md:p-6"}`}>{children}</div>
           </main>
           {/* <!-- ===== Main Content End ===== --> */}
         </div>
