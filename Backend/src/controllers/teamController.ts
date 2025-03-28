@@ -17,6 +17,16 @@ export const getTeams = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
+export const getTeamsNoAuth = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const teams = await Team.find();
+    res.status(200).json(teams);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error. Please try again." });
+  }
+};
+
 export const updateLotteryRanks = async (req: Request, res: Response): Promise<void> => {
   try {
     const { teams } = req.body;
