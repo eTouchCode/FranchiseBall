@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { FiPlus } from "react-icons/fi";
 import { FiMinus } from "react-icons/fi";
+import { useAuthStore } from '../../store/auth.store';
 
 import Axios from "../../config/axios";
 import {
@@ -11,6 +12,7 @@ import {
   usePlayerStore,
 } from "../../store/player.store";
 import { Team, useTeamStore } from "../../store/team.store";
+
 import AddPlayerLinkModal from "../../components/AddPlayerLinkModal";
 
 const Dashboard = () => {
@@ -43,6 +45,7 @@ const Dashboard = () => {
   const [isOpenAddPlayerLinkModal, setIsOpenAddPlayerLinkModal] =
     useState<boolean>(false);
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
+  const { user, logOut } = useAuthStore() as { user: any, logOut: () => void };
 
   const handleRemove = async (player: Player) => {
     try {
@@ -108,6 +111,13 @@ const Dashboard = () => {
           setLotteryTeams(hasLotteryRank ? sortedTeams : null);
           setSelectedTeam(targetTeam[0]);
           setTeamLoading(false);
+          if (user?.team_name && allTeams.length > 0 ) {
+            const matchingTeam = allTeams.find(allTeam => allTeam.name === user.team_name);
+      
+            if (matchingTeam) {
+              setSelectedTeam(matchingTeam);
+            }
+          }
         }
       } catch (err: any) {
         setTeamLoading(false);

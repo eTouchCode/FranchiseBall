@@ -101,9 +101,9 @@ const ViewDraftPortal = () => {
           updatedTeamsRef.current = updatedTeamsRef.current.map((team) =>
             team._id === currentTeam._id ? updatedTeam : team
           );
-          toast.success(
-            `The pick is in! ${currentTeam.name} selected ${selectedPlayer.name}`
-          );
+          // toast.success(
+          //   `The pick is in! ${currentTeam.name} selected ${selectedPlayer.name}`
+          // );
         }
         setTimeout(() => {
           nextTeam();
@@ -123,8 +123,13 @@ const ViewDraftPortal = () => {
     <div className="flex flex-col absolute w-fit">
       <div className="flex items-center justify-center">
         <span className="w-1/2 text-center text-black dark:text-white text-lg font-medium  bg-bodydark dark:bg-boxdark">
-          Status Bar - this shows current status like "
-          {teams[teamIndexRef.current]?.name}" :{" "}
+          Status Bar - The pick is in! With the 
+          {directionRef.current != 0 ? 
+            (teamIndexRef.current + 1 + (directionRef.current - 1) / (-2) * 9) : "end"}
+          rd pick of the draft, the 
+          {teams[teamIndexRef.current]?.name}
+           select 
+          {}
           {`${Math.floor(countRef.current / 60)
             .toString()
             .padStart(2, "0")}:${(countRef.current % 60)
@@ -134,7 +139,7 @@ const ViewDraftPortal = () => {
       </div>
       <div className="flex items-center justify-center">
           <div className="w-1/2 overflow-y-auto max-h-[calc(100vh-13rem)]">
-            <table className="text-[11px] min-w-full autoborder border-stroke dark:border-strokedark">
+            <table className="text-[15px] min-w-full autoborder border-stroke dark:border-strokedark">
               <thead>
                 <tr className="bg-white dark:bg-boxdark border-b border-stroke dark:border-b-strokedark">
                   <th className="px-2 py-2 text-left text-black dark:text-white">
@@ -228,9 +233,9 @@ const ViewDraftPortal = () => {
           </div>
         </div>
       <div className="flex justify-between mt-2">
-        <div className="">
+        <div className="w-1/4">
           <div className="overflow-y-auto max-h-[calc(100vh-13rem)]">
-            <table className="text-[11px] min-w-full autoborder border-stroke dark:border-strokedark">
+            <table className="text-[16px] min-w-full autoborder border-stroke dark:border-strokedark">
               <thead>
                 <tr className="bg-white dark:bg-boxdark border-b border-stroke dark:border-b-strokedark">
                   <th className="px-6 py-4 text-left text-black dark:text-white w-1/12">
@@ -266,21 +271,21 @@ const ViewDraftPortal = () => {
         <div>
           <img src="background.png" alt="Background Image"></img>
         </div>
-        <div className="w-1/5">
+        <div className="w-1/4">
           <div className="overflow-y-auto max-h-[calc(100vh-13rem)]">
-            <table className="text-[11px] min-w-full autoborder border-stroke dark:border-strokedark">
+            <table className="text-[16px] min-w-full autoborder border-stroke dark:border-strokedark">
               <thead>
                 <tr className="bg-white dark:bg-boxdark border-b border-stroke dark:border-b-strokedark">
-                <th className="px-2 py-2 text-left text-black dark:text-white">
+                <th className="px-2 py-3 text-left text-black dark:text-white">
                     No
                   </th>
-                  <th className="px-2 py-2 text-left text-black dark:text-white">
+                  <th className="px-2 py-3 text-left text-black dark:text-white">
                     Name
                   </th>
-                  <th className="px-2 py-2 text-left text-black dark:text-white">
+                  <th className="px-2 py-3 text-left text-black dark:text-white">
                     Position
                   </th>
-                  <th className="px-2 py-2 text-left text-black dark:text-white">
+                  <th className="px-2 py-3 text-left text-black dark:text-white">
                     Team
                   </th>
                 </tr>
@@ -294,10 +299,10 @@ const ViewDraftPortal = () => {
                         key={index}
                         className={`bg-white dark:bg-boxdark whitespace-nowrap cursor-pointer hover:bg-stroke dark:hover:bg-strokedark border-b border-b-stroke dark:border-b-strokedark`}
                       >
-                        <td className="px-2 py-0">{index + 1}</td>
-                        <td className="px-2 py-0">{player?.name || '-'}</td>
-                        <td className="px-2 py-0">{player?.position || '-'}</td>
-                        <td className="px-2 py-0">{player?.team_name || '-'}</td>
+                        <td className="px-2 py-1">{index + 1}</td>
+                        <td className="px-2 py-1">{player?.name || '-'}</td>
+                        <td className="px-2 py-1">{player?.position || '-'}</td>
+                        <td className="px-2 py-1">{player?.team_name || '-'}</td>
                       </tr>
                     )
                   })
