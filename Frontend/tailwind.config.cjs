@@ -4,6 +4,7 @@ const colors = require('tailwindcss/colors')
 /** @type {import('tailwindcss').Config} */
 
 const plugin = require('tailwindcss/plugin');
+const { Slide } = require('react-toastify');
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [

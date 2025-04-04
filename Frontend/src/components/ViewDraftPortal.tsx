@@ -1,10 +1,20 @@
 import { useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
 import { Team, useTeamStore } from "../store/team.store";
 import { Player, PriorityLists, usePlayerStore } from "../store/player.store";
 
 let autoPickedPlayers: any[] = [];
 let addedPlayers = new Set();
+
+function getOrdinalSuffix(num: number) {
+  const j = num % 10;
+  const k = num % 100;
+  
+  if (j === 1 && k !== 11) return "st";
+  if (j === 2 && k !== 12) return "nd";
+  if (j === 3 && k !== 13) return "rd";
+  return "th";
+}
+
 const ViewDraftPortal = () => {
   const { teams: initialTeams, lotteryTeams } = useTeamStore() as {
     teams: Team[];
@@ -23,6 +33,8 @@ const ViewDraftPortal = () => {
   const updatedTeamsRef = useRef(teams);
 
   const [_, setShouldRender] = useState(0);
+  const [showPickIn, setShowPickIn] = useState(true);
+  const [selectedPlayerName, setSelectedPlayerName] = useState<string | null>(null);
 
   const startCountDown = () => {
     if (intervalRef.current) clearInterval(intervalRef.current);
@@ -66,7 +78,7 @@ const ViewDraftPortal = () => {
       currentTeam.drafted_players.length > 0 &&
       directionRef.current === 1
     ) {
-      nextTeam(); //check drafted player exists then continue the next team pick
+      nextTeam();
     } else {
       const all_drafted_players = updatedTeamsRef.current.flatMap(
         (team) => team?.drafted_players
@@ -88,6 +100,8 @@ const ViewDraftPortal = () => {
           availablePlayers[Math.floor(Math.random() * availablePlayers.length)];
       }
       if (selectedPlayer) {
+        setShowPickIn(false);
+        setSelectedPlayerName(selectedPlayer.name);
         const teamToUpdate = updatedTeamsRef.current.find(
           (team) => team._id === currentTeam._id
         );
@@ -107,6 +121,8 @@ const ViewDraftPortal = () => {
         }
         setTimeout(() => {
           nextTeam();
+          setShowPickIn(true);
+          setSelectedPlayerName(null);
         }, 2000);
       }
     }
@@ -118,24 +134,58 @@ const ViewDraftPortal = () => {
       hasRendered.current = true;
     }
   }, []);
-
+// 1st, 2nd, 3rd, 4th, 5th, 6th, 7th, 8th, 9th, 10th, 11th, 12th, 13th, 14th, 15th, 16th, 17th, 18th, 19th, 20th, 21st, 22nd, 23rd, 24th, 25th, 26th, 27th, 28th, 29th, 30th
   return (
     <div className="flex flex-col absolute w-fit">
-      <div className="flex items-center justify-center">
-        <span className="w-1/2 text-center text-black dark:text-white text-lg font-medium  bg-bodydark dark:bg-boxdark">
-          Status Bar - The pick is in! With the 
-          {directionRef.current != 0 ? 
-            (teamIndexRef.current + 1 + (directionRef.current - 1) / (-2) * 9) : "end"}
-          rd pick of the draft, the 
-          {teams[teamIndexRef.current]?.name}
-           select 
-          {}
-          {`${Math.floor(countRef.current / 60)
-            .toString()
-            .padStart(2, "0")}:${(countRef.current % 60)
-            .toString()
-            .padStart(2, "0")}`}
-        </span>
+      <div className="flex flex-col items-center justify-center">
+        <div className="w-1/2 flex flex-col gap-0">
+          <div className="h-1/3 overflow-hidden relative bg-bodydark dark:bg-boxdark">
+            <div className="text-center text-black dark:text-white text-lg font-medium">
+              {showPickIn && directionRef.current != 0 ? "The Pick is In!" : <span className="opacity-0"> ! </span>}
+            </div>
+          </div>
+          <div className="text-center text-black dark:text-white text-lg font-medium bg-bodydark dark:bg-boxdark">
+            {`${
+              directionRef.current != 0
+                ? "With the " 
+                  + (directionRef.current * teamIndexRef.current + (19 - directionRef.current * 17) / 2)
+                  + getOrdinalSuffix(directionRef.current * teamIndexRef.current + (19 - directionRef.current * 17) / 2)
+                  + " pick of the draft, the "
+                  + teams[teamIndexRef.current]?.name
+                  + " selects..."
+                : "The Pick is ended!"
+            }`}
+          </div>
+          <div className="h-8 text-center text-black dark:text-white text-lg font-medium bg-bodydark dark:bg-boxdark">
+            {(() => {
+              // Find current team in updatedTeamsRef
+              const teamIndex = updatedTeamsRef.current.findIndex(
+                (team) => team._id === teams[teamIndexRef.current]._id
+              );
+              const team = teamIndex !== -1 ? updatedTeamsRef.current[teamIndex] : null;
+              // Get drafted players or empty array if none
+              const draftedPlayers = team?.drafted_players || [];
+              const lastDraftedPlayer = draftedPlayers.length > 0 && draftedPlayers.length <= (3 - directionRef.current) / 2.0 
+                ? draftedPlayers[(1 - directionRef.current) / 2.0] 
+                : null;
+
+              const player = players.find((p) => p._id === lastDraftedPlayer);
+              
+              // If there's a selected player (being picked now), show that
+              if (selectedPlayerName) {
+                return selectedPlayerName;
+              }
+              // Otherwise show last drafted player or timer
+              return player?.name || 
+                `${Math.floor(countRef.current / 60)
+                  .toString()
+                  .padStart(2, "0")}:${(countRef.current % 60)
+                  .toString()
+                  .padStart(2, "0")}`;
+            })()}
+
+          </div>
+        </div>
       </div>
       <div className="flex items-center justify-center">
           <div className="w-1/2 overflow-y-auto max-h-[calc(100vh-13rem)]">
